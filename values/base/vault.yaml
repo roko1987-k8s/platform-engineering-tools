@@ -1,0 +1,6 @@
+# Vault CLIENT only (agent injector). No Vault server per cluster: the platform Vault is published later.
+server:
+  enabled: false
+injector:
+  enabled: true
+  externalVaultAddr: ""

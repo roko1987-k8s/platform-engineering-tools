@@ -1,0 +1,8 @@
+# Argo CD per cluster: syncs only this cluster's tools/ folder from the gitops repo (pull over NAT).
+configs:
+  params:
+    server.insecure: false
+dex:
+  enabled: false
+notifications:
+  enabled: false

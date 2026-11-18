@@ -1,0 +1,6 @@
+# Prometheus + Alertmanager + Grafana. Short retention; sizing to be measured on the System pool (D8).
+prometheus:
+  prometheusSpec:
+    retention: 7d
+grafana:
+  enabled: true

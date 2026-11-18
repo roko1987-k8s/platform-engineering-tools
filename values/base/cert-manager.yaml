@@ -1,0 +1,3 @@
+# Certificates of platform tools only (Issuers per platform namespace; see the tools sketch).
+crds:
+  enabled: true

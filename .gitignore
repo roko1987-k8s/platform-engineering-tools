@@ -1,0 +1,11 @@
+# Nunca versionar: secretos, claves, entornos locales ni copias de seguridad
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+*.bak*
+*.tfstate*
+.helm/
+.DS_Store

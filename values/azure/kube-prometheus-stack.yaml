@@ -1,0 +1,9 @@
+prometheus:
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: managed-csi
+          resources:
+            requests:
+              storage: 20Gi
