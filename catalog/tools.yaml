@@ -1,9 +1,10 @@
-# ADP tools catalog (adp-tools-catalog-v1). Open source only, installed with Helm by the Tools Agent.
-# Same charts, repositories and versions on every cloud; only values/<cloud>/ differ.
-# required: true  -> always installed (GP04 mandatory); false -> only when the team selects it.
+# ADP tools catalog (adp-tools-catalog-v2). Open source only.
+# Technical structure of each tool: Helm repository, chart, release, namespace, install order, dependencies and
+# how it is detected in the cluster. Versions and mandatory/optional live ONLY in versions/main.tf.
+# Same charts and repositories on every cloud; only values/<cloud>/ differ.
 # workloads: what each release creates (detection without reading Helm's release Secrets).
 # version_from: workload + label whose value must equal "<chart>-<version>" (omitted = not verifiable).
-schema: adp-tools-catalog-v1
+schema: adp-tools-catalog-v2
 repositories:
   argo: https://argoproj.github.io/argo-helm
   jetstack: https://charts.jetstack.io
@@ -18,7 +19,6 @@ repositories:
 tools:
   - id: argo-cd
     title: Argo CD
-    required: true
     order: 10
     clouds: [aws, azure]
     releases:
@@ -26,7 +26,6 @@ tools:
         namespace: argocd
         repository: argo
         chart: argo-cd
-        version: 10.18.0
         values: argo-cd
         workloads:
           - {kind: Deployment, name: argocd-server}
@@ -37,7 +36,6 @@ tools:
         version_from: {workload: argocd-server, label: helm.sh/chart}
   - id: cert-manager
     title: cert-manager
-    required: true
     order: 20
     clouds: [aws, azure]
     releases:
@@ -45,7 +43,6 @@ tools:
         namespace: cert-manager
         repository: jetstack
         chart: cert-manager
-        version: v1.21.3
         values: cert-manager
         workloads:
           - {kind: Deployment, name: cert-manager}
@@ -54,7 +51,6 @@ tools:
         version_from: {workload: cert-manager, label: helm.sh/chart}
   - id: istio
     title: Istio
-    required: false
     order: 25
     clouds: [aws, azure]
     releases:
@@ -62,21 +58,18 @@ tools:
         namespace: istio-system
         repository: istio
         chart: base
-        version: 1.30.8
         values: istio-base
         workloads: []
       - release: istiod
         namespace: istio-system
         repository: istio
         chart: istiod
-        version: 1.30.8
         values: istiod
         workloads:
           - {kind: Deployment, name: istiod}
         version_from: {workload: istiod, label: helm.sh/chart}
   - id: kyverno
     title: Kyverno
-    required: true
     order: 30
     clouds: [aws, azure]
     releases:
@@ -84,7 +77,6 @@ tools:
         namespace: kyverno
         repository: kyverno
         chart: kyverno
-        version: 3.10.0
         values: kyverno
         workloads:
           - {kind: Deployment, name: kyverno-admission-controller}
@@ -94,7 +86,6 @@ tools:
         version_from: {workload: kyverno-admission-controller, label: helm.sh/chart}
   - id: gatekeeper
     title: OPA Gatekeeper
-    required: false
     order: 35
     clouds: [aws, azure]
     releases:
@@ -102,7 +93,6 @@ tools:
         namespace: gatekeeper-system
         repository: gatekeeper
         chart: gatekeeper
-        version: 3.23.1
         values: gatekeeper
         workloads:
           - {kind: Deployment, name: gatekeeper-controller-manager}
@@ -110,7 +100,6 @@ tools:
         version_from: {workload: gatekeeper-controller-manager, label: helm.sh/chart}
   - id: vault
     title: Vault (cliente)
-    required: true
     order: 40
     clouds: [aws, azure]
     releases:
@@ -118,13 +107,11 @@ tools:
         namespace: vault
         repository: hashicorp
         chart: vault
-        version: 0.34.1
         values: vault
         workloads:
           - {kind: Deployment, name: vault-agent-injector}
   - id: external-secrets
     title: External Secrets Operator
-    required: false
     order: 45
     clouds: [aws, azure]
     releases:
@@ -132,7 +119,6 @@ tools:
         namespace: external-secrets
         repository: external-secrets
         chart: external-secrets
-        version: 2.15.0
         values: external-secrets
         workloads:
           - {kind: Deployment, name: external-secrets}
@@ -141,7 +127,6 @@ tools:
         version_from: {workload: external-secrets, label: helm.sh/chart}
   - id: kube-prometheus-stack
     title: Prometheus y Grafana
-    required: true
     order: 50
     clouds: [aws, azure]
     releases:
@@ -149,7 +134,6 @@ tools:
         namespace: monitoring
         repository: prometheus-community
         chart: kube-prometheus-stack
-        version: 93.4.0
         values: kube-prometheus-stack
         workloads:
           - {kind: Deployment, name: kube-prometheus-stack-operator}
@@ -159,7 +143,6 @@ tools:
         version_from: {workload: kube-prometheus-stack-operator, label: chart}
   - id: opentelemetry-operator
     title: OpenTelemetry
-    required: true
     order: 60
     clouds: [aws, azure]
     depends_on: [cert-manager]
@@ -168,14 +151,12 @@ tools:
         namespace: opentelemetry-operator-system
         repository: open-telemetry
         chart: opentelemetry-operator
-        version: 0.129.1
         values: opentelemetry-operator
         workloads:
           - {kind: Deployment, name: opentelemetry-operator}
         version_from: {workload: opentelemetry-operator, label: helm.sh/chart}
   - id: flux
     title: Flux
-    required: false
     order: 70
     clouds: [aws, azure]
     releases:
@@ -183,7 +164,6 @@ tools:
         namespace: flux-system
         repository: fluxcd-community
         chart: flux2
-        version: 2.20.0
         values: flux2
         workloads:
           - {kind: Deployment, name: source-controller}
