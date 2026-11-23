@@ -1,1 +1,43 @@
-# Optional tool: catalog defaults.
+# istiod (control plane). Common to every cluster; per cloud in values/<cloud>/istiod.yaml and per cluster in
+# the gitops repo (clusters/<cloud>/<env>/<cluster>/values/istiod.yaml), the last one wins.
+# Sidecar mode. mTLS (PeerAuthentication), AuthorizationPolicy and ServiceEntry are NOT here: they belong to
+# delivery (application manifests), not to the platform tool.
+
+autoscaleEnabled: true
+autoscaleMin: 2
+autoscaleMax: 5
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    memory: 2Gi
+
+# Platform components run on the system node group (label set by the EKS module, no taints by default).
+nodeSelector:
+  platform.example/node-role: system
+
+meshConfig:
+  # Prometheus scrapes app + sidecar metrics from one port, without joining the mesh (STRICT-safe).
+  enablePrometheusMerge: true
+  defaultConfig:
+    # The application container starts only once its sidecar is ready.
+    holdApplicationUntilProxyStarts: true
+  # Access logs: configured with the Telemetry API (config/istio/base/telemetry.example.yaml), not here.
+  #
+  # DRAFT (not active): outbound traffic only to registered destinations. Enabling it requires every
+  # external destination to be declared with a ServiceEntry from delivery first, or egress breaks.
+  # outboundTrafficPolicy:
+  #   mode: REGISTRY_ONLY
+
+global:
+  # Default sidecar resources (a workload can override them with annotations).
+  proxy:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 1000m
+        memory: 512Mi

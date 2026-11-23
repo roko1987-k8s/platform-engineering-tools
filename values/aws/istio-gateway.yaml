@@ -1,0 +1,12 @@
+# EKS: internal NLB created by the AWS Load Balancer Controller (pods as IP targets).
+# Requires the AWS Load Balancer Controller (tool aws-load-balancer-controller) and the node subnets tagged
+# kubernetes.io/role/internal-elb=1 (EKS module eks-v1.7.0).
+service:
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    # The NLB uses the EKS module's <names.sg>-ingress group (rules 103/104), never one
+    # created by the controller. Its ID is per cluster: the cluster folder in gitops adds
+    #   service.beta.kubernetes.io/aws-load-balancer-security-groups: <sg-id>
+    service.beta.kubernetes.io/aws-load-balancer-manage-backend-security-group-rules: "false"

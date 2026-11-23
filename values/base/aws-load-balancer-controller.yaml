@@ -1,0 +1,38 @@
+# AWS Load Balancer Controller (AWS only). Common to every EKS cluster.
+# Per cluster (gitops repo, clusters/<cloud>/<env>/<cluster>/values/aws-load-balancer-controller.yaml),
+# written by the Tools Agent from the EKS module output `load_balancer_controller`:
+#   clusterName, vpcId, region
+# They are required: pods cannot read them from instance metadata (IMDSv2 hop limit 1).
+# IAM: EKS Pod Identity for aws-load-balancer-controller/aws-load-balancer-controller (EKS module,
+# own namespace: the Argo CD project never deploys to kube-system); no
+# role annotation on the service account.
+
+replicaCount: 2
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
+
+# Platform components run on the system node group.
+nodeSelector:
+  platform.example/node-role: system
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+# Pods as NLB targets (the gateway SG rules 104 allow the NLB to the pods' node group).
+defaultTargetType: ip
+
+# No ALB IngressClass: only the Istio gateway Service creates load balancers.
+createIngressClassResource: false
+
+# Never create the shared backend group k8s-traffic-* nor touch the node groups: the EKS
+# module's rules (network/rules.yaml, rule 104) already let the NLB reach the gateway pods.
+enableBackendSecurityGroup: false

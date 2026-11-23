@@ -1,0 +1,27 @@
+# Internal ingress gateway (chart "gateway"), namespace istio-ingress. Common to every cluster.
+# The load balancer is internal; its cloud-specific annotations live in values/<cloud>/istio-gateway.yaml.
+# The Gateway resource (FQDN + TLS secret) is in config/istio/base/gateway.yaml.
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+podDisruptionBudget:
+  minAvailable: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 2000m
+    memory: 1024Mi
+
+service:
+  type: LoadBalancer
+
+# Gateway pods on the User nodes: the NLB reaches only the User group (rule 104).
+nodeSelector:
+  platform.example/node-role: user

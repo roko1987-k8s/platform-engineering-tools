@@ -1,0 +1,7 @@
+# Istio platform resources inherited by every cluster (applied after istiod and istio-gateway).
+# *.example.yaml files are templates: they are NOT listed here and are never applied until filled in,
+# renamed (without .example) and added to resources.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - gateway.yaml

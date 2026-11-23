@@ -5,8 +5,11 @@
 # workloads: what each release creates (detection without reading Helm's release Secrets).
 # version_from: workload + label whose value must equal "<chart>-<version>" (omitted = not verifiable).
 schema: adp-tools-catalog-v2
+# Cloud-agnostic platform resources of every cluster (single entry point policy), before any tool.
+platform_config: platform/base
 repositories:
   argo: https://argoproj.github.io/argo-helm
+  eks: https://aws.github.io/eks-charts
   jetstack: https://charts.jetstack.io
   kyverno: https://kyverno.github.io/kyverno/
   hashicorp: https://helm.releases.hashicorp.com
@@ -34,6 +37,23 @@ tools:
           - {kind: Deployment, name: argocd-redis}
           - {kind: StatefulSet, name: argocd-application-controller}
         version_from: {workload: argocd-server, label: helm.sh/chart}
+  # AWS only: creates the internal NLB of the Istio gateway (and any Service/Ingress load
+  # balancer) from Kubernetes. Its IAM role and Pod Identity association come from the EKS
+  # module (modules/aws/load-balancer-controller); per-cluster values (clusterName, vpcId,
+  # region) come from the cluster folder in the gitops repo.
+  - id: aws-load-balancer-controller
+    title: AWS Load Balancer Controller
+    order: 15
+    clouds: [aws]
+    releases:
+      - release: aws-load-balancer-controller
+        namespace: aws-load-balancer-controller
+        repository: eks
+        chart: aws-load-balancer-controller
+        values: aws-load-balancer-controller
+        workloads:
+          - {kind: Deployment, name: aws-load-balancer-controller}
+        version_from: {workload: aws-load-balancer-controller, label: helm.sh/chart}
   - id: cert-manager
     title: cert-manager
     order: 20
@@ -53,6 +73,8 @@ tools:
     title: Istio
     order: 25
     clouds: [aws, azure]
+    # config/istio/base (shared internal Gateway), applied after the three releases.
+    config: istio/base
     releases:
       - release: istio-base
         namespace: istio-system
@@ -68,6 +90,14 @@ tools:
         workloads:
           - {kind: Deployment, name: istiod}
         version_from: {workload: istiod, label: helm.sh/chart}
+      - release: istio-gateway
+        namespace: istio-ingress
+        repository: istio
+        chart: gateway
+        values: istio-gateway
+        workloads:
+          - {kind: Deployment, name: istio-gateway}
+        version_from: {workload: istio-gateway, label: helm.sh/chart}
   - id: kyverno
     title: Kyverno
     order: 30
