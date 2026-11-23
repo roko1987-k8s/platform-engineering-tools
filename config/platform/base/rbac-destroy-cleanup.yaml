@@ -1,0 +1,59 @@
+# Destroy pre-step (Terraform Agent), group adp:destroy-cleanup: the access entry of the
+# cluster's <eks>-k8s-cleanup role (EKS module). Before terraform destroy it stops Argo CD's
+# application controller (otherwise selfHeal recreates the Service) and deletes the
+# LoadBalancer Services and Ingresses, so the load balancer controller removes its NLBs/ALBs.
+# Nothing else: no Secrets, no Argo CD objects, no other workload.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: adp-destroy-cleanup
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: adp-destroy-cleanup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: adp-destroy-cleanup
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: adp:destroy-cleanup
+---
+# Only the Argo CD application controller, by name: scale it to 0.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: adp-destroy-cleanup
+  namespace: argocd
+rules:
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    resourceNames: ["argocd-application-controller"]
+    verbs: ["get"]
+  - apiGroups: ["apps"]
+    resources: ["statefulsets/scale"]
+    resourceNames: ["argocd-application-controller"]
+    verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: adp-destroy-cleanup
+  namespace: argocd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: adp-destroy-cleanup
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: adp:destroy-cleanup
