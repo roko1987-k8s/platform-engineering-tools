@@ -7,6 +7,13 @@ service:
     service.beta.kubernetes.io/aws-load-balancer-scheme: internal
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
     # The NLB uses the EKS module's <names.sg>-ingress group (rules 103/104), never one
-    # created by the controller. Its ID is per cluster: the cluster folder in gitops adds
-    #   service.beta.kubernetes.io/aws-load-balancer-security-groups: <sg-id>
+    # created by the controller. Per cluster, the Tools Agent adds its NAME (from the naming):
+    #   service.beta.kubernetes.io/aws-load-balancer-security-groups: <names.sg>-ingress
     service.beta.kubernetes.io/aws-load-balancer-manage-backend-security-group-rules: "false"
+    # Every target group checks the gateway readiness on the Istio status port (rule 104
+    # allows 15021), not its own port: a port without a server (443 until the HTTPS
+    # Gateway exists) is not reported unhealthy, and a gateway that is not ready leaves
+    # every target group at once.
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "15021"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: http
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: /healthz/ready
