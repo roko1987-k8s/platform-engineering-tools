@@ -1,0 +1,28 @@
+# EXAMPLE (not applied). EnvoyFilter patches Envoy's internal configuration: it is tied to the Istio/Envoy
+# version and can break on upgrades. Use it only when no Istio API covers the need, and pin it to the
+# gateway with workloadSelector. Fill in, rename to envoyfilter.yaml and add it to kustomization.yaml.
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: example-gateway-filter
+  namespace: istio-ingress
+spec:
+  workloadSelector:
+    labels:
+      istio: gateway
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            # Example: idle timeout of client connections to the gateway.
+            common_http_protocol_options:
+              idle_timeout: 300s

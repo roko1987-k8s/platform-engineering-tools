@@ -1,0 +1,33 @@
+# Single entry point (same on EKS and AKS): only the internal Istio gateway may have a
+# Service of type LoadBalancer. Applications enter through istio-ingress/internal with a
+# VirtualService, never with their own load balancer.
+#
+# A future exception (a team that really needs its own load balancer) is a reviewed change:
+# a custom network rule 150-199 (network/rules.yaml) plus adding its namespace here.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: adp-single-entry-load-balancer
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["services"]
+  variables:
+    - name: allowedNamespaces
+      expression: "['istio-ingress']"
+  validations:
+    - expression: "object.spec.type != 'LoadBalancer' || request.namespace in variables.allowedNamespaces"
+      messageExpression: "'Service type LoadBalancer is only allowed in ' + variables.allowedNamespaces.join(', ') + ': use the internal gateway (istio-ingress/internal) with a VirtualService'"
+      reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: adp-single-entry-load-balancer
+spec:
+  policyName: adp-single-entry-load-balancer
+  validationActions: [Deny]

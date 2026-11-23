@@ -1,0 +1,21 @@
+# EXAMPLE (not applied). Mesh-wide Telemetry in the root namespace: inherited by every workload.
+# Fill in, rename to telemetry.yaml and add it to kustomization.yaml.
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: istio-system
+spec:
+  accessLogging:
+    - providers:
+        - name: envoy # built-in provider: access logs to the proxy's stdout
+      # Example filter: log only errors.
+      # filter:
+      #   expression: response.code >= 400
+  # tracing:
+  #   - providers:
+  #       - name: example-otel # must exist in meshConfig.extensionProviders (values/base/istiod.yaml)
+  #     randomSamplingPercentage: 1.0
+  # metrics:
+  #   - providers:
+  #       - name: prometheus

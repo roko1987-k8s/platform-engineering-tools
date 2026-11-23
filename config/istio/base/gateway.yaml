@@ -1,0 +1,32 @@
+# Shared internal gateway. Teams attach their routes (VirtualService, from delivery) to
+# istio-ingress/internal.
+#
+# Until the cluster has its FQDN and certificate, port 80 serves any host WITHOUT redirect
+# (first end-to-end test through the internal NLB). Then: enable the HTTPS server below
+# with the cluster's FQDN and TLS secret (per-cluster values in the gitops folder) and switch
+# port 80 to httpsRedirect.
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: internal
+  namespace: istio-ingress
+spec:
+  selector:
+    istio: gateway # pods of the istio-gateway release (chart "gateway")
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+    # DRAFT (not active until the FQDN and its certificate exist):
+    # - port:
+    #     number: 443
+    #     name: https
+    #     protocol: HTTPS
+    #   hosts:
+    #     - "example.internal" # FQDN of this cluster, set per cluster
+    #   tls:
+    #     mode: SIMPLE
+    #     credentialName: example-internal-tls # secret in istio-ingress, set per cluster

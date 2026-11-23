@@ -6,7 +6,7 @@ Solo herramientas open source; mismos charts, repositorios y versiones en todas 
 
 | Ruta | Contenido |
 |---|---|
-| `versions/main.tf` | **Único sitio con versiones** y con obligatoria (`required = true`, se instala siempre) u opcional (`false`, solo si el equipo la marca). Solo datos: nadie ejecuta Terraform sobre él |
+| `versions/main.tf` | **Único sitio con versiones** y con obligatoria (`required = true`, se instala siempre en las nubes de su `clouds`; p. ej. el AWS Load Balancer Controller solo en AWS) u opcional (`false`, solo si el equipo la marca). Solo datos: nadie ejecuta Terraform sobre él |
 | `catalog/tools.yaml` | Esquema `adp-tools-catalog-v2`: estructura técnica de cada herramienta (repositorio permitido, chart, release, namespace, orden, dependencias) y cómo se detecta en el clúster; sin versiones |
 | `values/base/<values>.yaml` | Values comunes de cada release |
 | `values/aws/`, `values/azure/` | Solo lo que cambia por nube (p. ej. `storageClass`) |
