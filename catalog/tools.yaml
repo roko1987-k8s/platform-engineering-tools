@@ -82,6 +82,15 @@ tools:
         chart: base
         values: istio-base
         workloads: []
+        # istiod rewrites its webhooks after install (CA bundle, failurePolicy): Argo CD ignores
+        # those fields, otherwise the Application stays OutOfSync fighting istiod.
+        ignore_differences:
+          - group: admissionregistration.k8s.io
+            kind: ValidatingWebhookConfiguration
+            jqPathExpressions: [".webhooks[]?.clientConfig.caBundle", ".webhooks[]?.failurePolicy"]
+          - group: admissionregistration.k8s.io
+            kind: MutatingWebhookConfiguration
+            jqPathExpressions: [".webhooks[]?.clientConfig.caBundle"]
       - release: istiod
         namespace: istio-system
         repository: istio
@@ -90,6 +99,15 @@ tools:
         workloads:
           - {kind: Deployment, name: istiod}
         version_from: {workload: istiod, label: helm.sh/chart}
+        # istiod rewrites its webhooks after install (CA bundle, failurePolicy): Argo CD ignores
+        # those fields, otherwise the Application stays OutOfSync fighting istiod.
+        ignore_differences:
+          - group: admissionregistration.k8s.io
+            kind: ValidatingWebhookConfiguration
+            jqPathExpressions: [".webhooks[]?.clientConfig.caBundle", ".webhooks[]?.failurePolicy"]
+          - group: admissionregistration.k8s.io
+            kind: MutatingWebhookConfiguration
+            jqPathExpressions: [".webhooks[]?.clientConfig.caBundle"]
       - release: istio-gateway
         namespace: istio-ingress
         repository: istio
