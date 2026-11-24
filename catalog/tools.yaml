@@ -54,6 +54,22 @@ tools:
         workloads:
           - {kind: Deployment, name: aws-load-balancer-controller}
         version_from: {workload: aws-load-balancer-controller, label: helm.sh/chart}
+        # The chart generates its webhook CA and serving certificate (genCA) on every render,
+        # and Argo CD renders it on every sync (keepTLSSecret needs `lookup`, which has no
+        # cluster under Argo CD). A later render left the webhooks' caBundle and the serving
+        # certificate from different generations: every Service was rejected with "x509:
+        # certificate signed by unknown authority" (D010 2026-11-23). Argo CD creates the pair
+        # once and never rewrites it.
+        ignore_differences:
+          - group: admissionregistration.k8s.io
+            kind: MutatingWebhookConfiguration
+            jqPathExpressions: [".webhooks[]?.clientConfig.caBundle"]
+          - group: admissionregistration.k8s.io
+            kind: ValidatingWebhookConfiguration
+            jqPathExpressions: [".webhooks[]?.clientConfig.caBundle"]
+          - group: ""
+            kind: Secret
+            jqPathExpressions: [".data"]
   - id: cert-manager
     title: cert-manager
     order: 20
