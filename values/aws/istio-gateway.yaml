@@ -6,6 +6,10 @@ service:
     service.beta.kubernetes.io/aws-load-balancer-type: external
     service.beta.kubernetes.io/aws-load-balancer-scheme: internal
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    # Cross-zone on: each NLB node forwards to healthy gateway pods in any zone. Off (the AWS
+    # default), the node in a zone without gateway pods resets connections (D010 2026-11-24:
+    # both pods on the only user node in 1a, curl refused through the 1b address).
+    service.beta.kubernetes.io/aws-load-balancer-attributes: load_balancing.cross_zone.enabled=true
     # The NLB uses the EKS module's <names.sg>-ingress group (rules 103/104), never one
     # created by the controller. Per cluster, the Tools Agent adds its NAME (from the naming):
     #   service.beta.kubernetes.io/aws-load-balancer-security-groups: <names.sg>-ingress
